@@ -1,5 +1,7 @@
-from app.db import db
+import json
+from weather_app.db import db
 from datetime import datetime
+from weather_app.services.weather_api_service import transform_weather_data
 
 class City(db.Model):
     """
@@ -40,4 +42,17 @@ class WeatherRequestLog(db.Model):
     response_status = db.Column(db.String(20), nullable=False)
     response_data = db.Column(db.Text)  # save json response as text
     
-    
+    def to_dict(self, include_weather_data=False):
+        city = City.query.get(self.city_id)
+        res = {
+            "id": self.id,
+            "city_name": city.name,
+            "timestamp": self.timestamp,
+            "response_status": self.response_status
+        }
+        if include_weather_data:
+            if self.response_status == "success":
+                res["response_data"] = transform_weather_data(json.loads(self.response_data))
+            else:
+                res["response_data"] = self.response_data
+        return res

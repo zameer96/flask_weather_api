@@ -1,9 +1,10 @@
+import json
 import requests
-# from flask import current_app
 from flask import current_app
-from config import Config
-from app.models import City, WeatherRequestLog
-from app.db import db
+from sqlalchemy import asc, desc
+from weather_app.services.serializers import transform_weather_data
+from weather_app.models import City, WeatherRequestLog
+from weather_app.db import db
 
 
 class WeatherApiService:
@@ -30,7 +31,7 @@ class WeatherApiService:
         
         # transform data to string (mostly if it's a dict)
         if response_data and isinstance(response_data, dict):
-            response_data = str(response_data)
+            response_data = json.dumps(response_data)
         
         weather_request_log = WeatherRequestLog(city_id=city_id, response_status=response_status, response_data=response_data)
         db.session.add(weather_request_log)
@@ -59,15 +60,31 @@ class WeatherApiService:
         response = requests.get(endpoint)
         if response.status_code != 200:
             response_status = "failed"
-            response_data = response.text
+            try:
+                response_data = response.json()
+            except:
+                response_data = response.text
             error_msg = self.ERROR_MESSAGES["default"]
         else:
             response_status = "success"
             response_data = response.json()
-            results = self.filter_weather_api_response(response_data)
+            results = transform_weather_data(response_data)
+            # results = self.filter_weather_api_response(response_data)
             
         self.save_weather_request_log(city_id, response_status, response_data)
         return results, error_msg
+    
+    def get_weather_logs(self, limit=5, include_weather_data=False, filter_repsonse_status=None):
+        """
+        Get all the weather logs
+        """
+        filter_query = {}
+        if filter_repsonse_status:
+            filter_query["response_status"] = filter_repsonse_status
+            
+        logs = WeatherRequestLog.query.filter_by(**filter_query).order_by(WeatherRequestLog.timestamp.desc()).limit(limit).all()
+        logs_list = [log.to_dict(include_weather_data=include_weather_data) for log in logs]
+        return logs_list, None  # No error msg
     
     def filter_weather_api_response(self, response_dict):
         """

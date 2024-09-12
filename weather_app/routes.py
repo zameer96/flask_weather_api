@@ -1,8 +1,26 @@
-from flask import Blueprint, request, jsonify, url_for, redirect
-from app.services.weather_service import WeatherApiService
-from app.models import City, db
+from flask import Blueprint, request, url_for, redirect
+from weather_app.services import WeatherApiService
+from weather_app.models import City
+from weather_app.db import db
+
 
 routes = Blueprint('routes', __name__)
+
+def generate_response(status, data=None, error_message=None, status_code=200, **kwargs):
+    """
+    Just to keep the response format consistent
+    **kwargs to add more data in the response
+    """
+    response = {
+        "status": status
+    }
+    if data:
+        response["data"] = data
+    if error_message:
+        response["error"] = error_message
+    if kwargs:
+        response.update(kwargs)
+    return response, status_code
 
 
 @routes.route('/', methods=['GET'])
@@ -23,11 +41,10 @@ def list_cities():
     count = len(cities_list)
     if not cities_list:
         populate_cities_url = url_for('routes.populate_cities', _external=True)
-        return {"message": f"No cities found. Goto {populate_cities_url}"}, 400
-    
-    return {"status": True,
-            "count": count,
-            "data": cities_list}, 200
+        return generate_response(status=False,
+                                 error_message=f"No cities found. Goto {populate_cities_url}",
+                                 status_code=400)
+    return generate_response(status=True, data=cities_list, status_code=200, count=count)
 
 
 @routes.route('/weather')
@@ -40,14 +57,25 @@ def weather():
     if not city_id:
         return {"status": False, "message": "City id is required"}, 400
     
-    weather_api = WeatherApiService()
-    res, error = weather_api.get_weather_by_city_id(city_id)
+    weather_api_service = WeatherApiService()
+    res, error = weather_api_service.get_weather_by_city_id(city_id)
     if error:
-        return {"status": False, "message": error}, 400
-    return {"status": True, "data": res}
+        return generate_response(status=False, error_message=error, status_code=400)
+    return generate_response(status=True, data=res, status_code=200)
 
 
+@routes.route('/weather-logs')
+def weather_logs():
+    """
+    List all the weather logs
+    """
 
+    weather_api_service = WeatherApiService()
+    logs, _ = weather_api_service.get_weather_logs(include_weather_data=True)  # this would hardly give any errors as we are just fetching the logs
+    return generate_response(status=True, data=logs, status_code=200)
+
+
+# Just to populate the cities in the database
 @routes.route('/populate-cities', methods=['GET'])
 def populate_cities():
     """
@@ -74,5 +102,4 @@ def populate_cities():
             db.session.add(new_city)
     
     db.session.commit()
-    return {"status": True,
-            "message": "Cities populated successfully"}, 200
+    return generate_response(status=True, message="Cities populated in Database successfully!", status_code=200)
