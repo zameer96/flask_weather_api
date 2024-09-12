@@ -17,9 +17,6 @@ def create_app():
     # import the weather blueprint
     app.register_blueprint(weather_routes)
     
-    with app.app_context():
-        # Create tables when the app
-        weather_db.create_all()
     return app
 
 app = create_app()

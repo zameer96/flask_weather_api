@@ -134,6 +134,47 @@ To run the application in debug mode, ensure that `FLASK_DEBUG=1` is set in your
 
 The application uses SQLite as its database. The database file is located at `weather_app_db.db` in the root directory.
 
+### Database Schema
+
+The Flask Weather API uses SQLite as its database. The schema consists of two main tables: `City` and `WeatherRequestLog`.
+
+#### City Table
+
+The `City` table stores information about various cities.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | Integer | Primary Key | Unique identifier for each city |
+| name | String(100) | Not Null | Name of the city |
+| lat | Float | Not Null | Latitude of the city |
+| long | Float | Not Null | Longitude of the city |
+
+
+#### WeatherRequestLog Table
+
+The `WeatherRequestLog` table stores the history of weather requests made through the API.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | Integer | Primary Key | Unique identifier for each log entry |
+| city_id | Integer | Foreign Key (City.id) | References the City table |
+| timestamp | DateTime | Default: Current time | When the request was made |
+| response_status | String(20) | Not Null | Status of the API response |
+| response_data | Text | | JSON response from the weather API (stored as text) |
+
+
+#### Notes (Schema models)
+
+1. The `WeatherRequestLog` model stores the entire JSON response from the weather API as text in the `response_data` column. This allows for flexibility in storing different response structures.
+
+2. The `to_dict()` method in `WeatherRequestLog` can optionally include the weather data, transforming it using the `transform_weather_data()` function when the response status is successful.
+
+3. For future improvements, consider creating a separate model for `response_data` and establishing a relationship with `WeatherRequestLog`. This would allow for easier management and potential periodic deletion of detailed response data while preserving request history.
+
+4. The `City` model includes a `to_dict()` method for easy serialization of city data.
+
+5. Both models use SQLAlchemy as the ORM (Object-Relational Mapping) tool, which provides an abstraction layer for database operations.
+
 ## API Key
 
 Make sure to replace the placeholder API key in the `.env` file with a valid key for the weather service you're using.
