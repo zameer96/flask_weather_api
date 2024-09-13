@@ -8,7 +8,7 @@ services:
       bash -c "flask db upgrade && flask run --host=0.0.0.0"
     volumes:
       - .:/app
-      - ./sqlite_db:/app/your_database_directory  # Persistent SQLite DB
+      - ./sqlite_db:/app  # Persistent SQLite DB
     ports:
       - "5000:5000"
     env_file:
