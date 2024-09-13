@@ -30,6 +30,9 @@ jobs:
     - name: Set up environment variables and database
       run: |
         export FLASK_ENV=testing
+        export FLASK_APP=app.py
+        export FLASK_DEBUG=1
+        export FLASK_APP_DATABASE_URL=sqlite:///weather_app_db.db 
         export PYTHONPATH=$PYTHONPATH:$(pwd)  # Add the current directory to PYTHONPATH
         flask db upgrade  # Apply migrations
 
