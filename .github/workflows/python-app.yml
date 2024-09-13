@@ -2,7 +2,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "development" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -11,13 +11,15 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: sqlite
-        options: --volume ./sqlite_db:/data
+    env:
+      FLASK_ENV: testing
+      FLASK_APP: app.py
+      FLASK_DEBUG: "1"
+      FLASK_APP_DATABASE_URL: "sqlite:///:memory:"
+      SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
+      PYTHONPATH: ${{ github.workspace }}
 
     steps:
     - uses: actions/checkout@v4
@@ -32,10 +34,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Set up the database
+    - name: Set up database
       run: |
-        export FLASK_ENV=testing
-        flask db upgrade  # Apply migrations
+        python -c "from app import app, weather_db; app.app_context().push(); weather_db.create_all()"
+        flask db upgrade
 
     - name: Test with pytest
       run: |
