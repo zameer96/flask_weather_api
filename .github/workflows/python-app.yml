@@ -11,8 +11,16 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+
+    env:
+      FLASK_ENV: testing
+      FLASK_APP: app.py
+      FLASK_DEBUG: 1
+      FLASK_APP_DATABASE_URL: sqlite:///:memory:
+      SQLALCHEMY_DATABASE_URI: sqlite:///:memory:
+      PYTHONPATH: ${{ github.workspace }}
+      WEATHER_APP_API_KEY: your_dummy_api_key_for_testing
 
     steps:
     - uses: actions/checkout@v4
@@ -27,14 +35,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Set up environment variables and database
+    - name: Set up database
       run: |
-        export FLASK_ENV=testing
-        export FLASK_APP=app.py
-        export FLASK_DEBUG=1
-        export SQLALCHEMY_DATABASE_URI=sqlite:///:memory:  # Temporary SQLite DB for testing
-        export PYTHONPATH=$PYTHONPATH:$(pwd)  # Add the current directory to PYTHONPATH
-        flask db upgrade  # Apply migrations
+        python -c "from app import app, weather_db; app.app_context().push(); weather_db.create_all()"
+        flask db upgrade
 
     - name: Test with pytest
       run: |
