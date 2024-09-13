@@ -16,11 +16,10 @@ jobs:
     env:
       FLASK_ENV: testing
       FLASK_APP: app.py
-      FLASK_DEBUG: 1
-      FLASK_APP_DATABASE_URL: "sqlite:///:memory":
-      SQLALCHEMY_DATABASE_URI: "sqlite:///:memory":
+      FLASK_DEBUG: "1"
+      FLASK_APP_DATABASE_URL: "sqlite:///:memory:"
+      SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
       PYTHONPATH: ${{ github.workspace }}
-      WEATHER_APP_API_KEY: your_dummy_api_key_for_testing
 
     steps:
     - uses: actions/checkout@v4
