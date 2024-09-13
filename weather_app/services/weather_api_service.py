@@ -69,7 +69,6 @@ class WeatherApiService:
             response_status = "success"
             response_data = response.json()
             results = transform_weather_data(response_data)
-            # results = self.filter_weather_api_response(response_data)
             
         self.save_weather_request_log(city_id, response_status, response_data)
         return results, error_msg
@@ -85,34 +84,4 @@ class WeatherApiService:
         logs = WeatherRequestLog.query.filter_by(**filter_query).order_by(WeatherRequestLog.timestamp.desc()).limit(limit).all()
         logs_list = [log.to_dict(include_weather_data=include_weather_data) for log in logs]
         return logs_list, None  # No error msg
-    
-    def filter_weather_api_response(self, response_dict):
-        """
-        Filter the weather API response
-        input: response_dict(dict)
-        output: filtered_dict(dict)
-        """
-        location = response_dict["location"]
-        current = response_dict["current"]
-        
-        filtered_dict = {
-            "city": location['name'],
-            "country": location['country'],
-            "weather_description": current['condition']['text'],
-            "temperature": {
-                "celsius": current['temp_c'],
-                "fahrenheit": current['temp_f']
-            },
-            "temperature_feels_like": {
-                "celcius": current['feelslike_c'],
-                "fahrenheit": current['feelslike_f']
-            },
-            "wind_speed": {
-                "kph": current['wind_kph'],
-                "mph": current['wind_mph']
-            },
-            "last_updated": current['last_updated']
-        }
-        return filtered_dict
-    
     

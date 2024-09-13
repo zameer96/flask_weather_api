@@ -100,6 +100,7 @@ flask run
 ### Weather Logs
 - **URL:** `/weather-logs`
 - **Method:** GET
+- **Parameters:** `limit` (optional) User can adjust record counts using this 
 - **Description:** Returns the latest 5 successful weather request logs.
 - **Response Example:**
   ```json
