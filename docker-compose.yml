@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: flask_weather_app
+    command: >
+      bash -c "flask db upgrade && flask run --host=0.0.0.0"
+    volumes:
+      - .:/app
+      - ./sqlite_db:/app/your_database_directory  # Persistent SQLite DB
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=development
