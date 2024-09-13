@@ -1,8 +1,16 @@
 # Flask Weather API
 
 A simple Flask-based API for retrieving weather information for various cities.
+We're using https://www.weatherapi.com/ API here for the weather data
 
 ## Setup
+
+use virtual-environment (atleaast I'm using it)
+
+### Install requirements
+```
+pip install requirements.txt
+```
 
 ### Environment Variables
 
@@ -126,9 +134,49 @@ flask run
   }
   ```
 
-## Development
+## Project Structure
+We have made a sperate app folder for 'weather_app' which handles models,routes,services, specifically for our weatherapp (assuming there might be more apps later)
 
-To run the application in debug mode, ensure that `FLASK_DEBUG=1` is set in your `.env` file.
+```
+├── README.md
+├── app.py
+├── config.py
+├── instance
+│   └── weather_app_db.db
+├── migrations
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions
+│       ├── 38b679fc05d0_add_initial_city_data.py
+│       └── b54146ac3372_create_initial_schema.py
+├── requirements.txt
+└── weather_app
+    ├── __init__.py
+    ├── models.py
+    ├── routes.py
+    └── services
+        ├── __init__.py
+        ├── serializers.py
+        └── weather_api_service.py
+```
+>app.py: entry file for the flask app
+
+>config.py: This file has the configs that we'll use throughout the app like: database_url, API_Keys
+
+> migrations/: This folder has the database migrations that developer needs to run before starting the project
+
+**weather_app/**
+> models.py: this contains the City, WeatherRequestLog models
+
+> routes.py: contains all the routes for weather_app
+
+**weather_app/services/**
+>weather_api_service.py: This has the core service and validations for the weather_app, like fetching the weather data from API and saving it in WeatherRequestLog model, fetching from cities, validating etc
+
+>serializers.py: this has serializer for the data_dict of weather_data. Since we are storing the api response as it is, so we need to show only specific data to the user (including the response for WeatherRequestLog).
+
+
 
 ## Database
 
@@ -178,3 +226,12 @@ The `WeatherRequestLog` table stores the history of weather requests made throug
 ## API Key
 
 Make sure to replace the placeholder API key in the `.env` file with a valid key for the weather service you're using.
+
+## Trade Offs
+The current architecture only supports single weather service API, what if we need to have multiple Weather APIs.
+
+We're saving the complete raw response of API in the WeatherRequestLog Table. It might take some extra space, but since we have the data we can also change the response schema by adding/removing keys from it.
+(Better to just run a cron job that would delete the old data after n days)
+
+## Potential Improvements
+-> use Adapter pattern to handle multiple Weather API channels, if one fails then fallback to other (this might increase response time but still, bettter than responding with API error)
