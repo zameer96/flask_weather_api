@@ -32,7 +32,7 @@ jobs:
         export FLASK_ENV=testing
         export FLASK_APP=app.py
         export FLASK_DEBUG=1
-        export FLASK_APP_DATABASE_URL=sqlite:///weather_app_db.db 
+        export SQLALCHEMY_DATABASE_URI=sqlite:///:memory:  # Temporary SQLite DB for testing
         export PYTHONPATH=$PYTHONPATH:$(pwd)  # Add the current directory to PYTHONPATH
         flask db upgrade  # Apply migrations
 
